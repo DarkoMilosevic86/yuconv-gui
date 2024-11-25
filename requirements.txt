@@ -1,0 +1,11 @@
+# YuConv transliteration package
+
+yuconv
+
+# Requirements for YuConv GUI
+
+wxPython
+
+# Requirements for YuConv GUI packaging
+
+pyinstaller
