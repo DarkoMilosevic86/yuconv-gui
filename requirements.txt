@@ -5,6 +5,7 @@ yuconv
 # Requirements for YuConv GUI
 
 wxPython
+pyqt5
 
 # Requirements for YuConv GUI packaging
 

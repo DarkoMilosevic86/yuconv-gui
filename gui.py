@@ -11,163 +11,188 @@
 # GNU General Public License for more details.
 
     
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLabel, QTextEdit, QFileDialog, QComboBox, QMessageBox, QLineEdit)
+from PyQt5.QtCore import Qt
 from yuconv import YuConverter
-import wx
+import sys
 
-class TransliterationApp(wx.Frame):
-    def __init__(self, parent, title):
-        super().__init__(parent, title=title, size=(600, 400))
+class TransliterationApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("YuConv GUI Application")
+        self.setGeometry(100, 100, 600, 400)
 
-        notebook = wx.Notebook(self)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
 
-        notebook.AddPage(self.create_text_transliteration_panel(notebook), "Text Transliteration")
-        notebook.AddPage(self.create_file_transliteration_panel(notebook), "File Transliteration")
-        notebook.AddPage(self.create_word_transliteration_panel(notebook), "Word Document Transliteration")
+        self.layout = QVBoxLayout()
+        self.central_widget.setLayout(self.layout)
 
-        self.Centre()
-        self.Show()
+        self.tabs = []
+        self.create_tabs()
 
-    def create_text_transliteration_panel(self, parent):
-        panel = wx.Panel(parent)
-        sizer = wx.BoxSizer(wx.VERTICAL)
+    def create_tabs(self):
+        self.layout.addWidget(self.create_text_transliteration_tab())
+        self.layout.addWidget(self.create_file_transliteration_tab())
+        self.layout.addWidget(self.create_word_transliteration_tab())
 
-        self.text_input = wx.TextCtrl(panel, style=wx.TE_MULTILINE, size=(-1, 200))
-        sizer.Add(self.text_input, 1, wx.EXPAND | wx.ALL, 10)
+    def create_text_transliteration_tab(self):
+        tab = QWidget()
+        layout = QVBoxLayout()
 
-        self.text_mode = wx.Choice(panel, choices=["LatinToCyrillic", "CyrillicToLatin"])
-        self.text_mode.SetSelection(0)
-        sizer.Add(self.text_mode, 0, wx.EXPAND | wx.ALL, 10)
+        self.text_input = QTextEdit()
+        layout.addWidget(QLabel("Input Text:"))
+        layout.addWidget(self.text_input)
 
-        text_transliterate_btn = wx.Button(panel, label="Transliterate")
-        text_transliterate_btn.Bind(wx.EVT_BUTTON, self.on_text_transliterate)
-        sizer.Add(text_transliterate_btn, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        self.text_mode = QComboBox()
+        self.text_mode.addItems(["LatinToCyrillic", "CyrillicToLatin"])
+        layout.addWidget(QLabel("Mode:"))
+        layout.addWidget(self.text_mode)
 
-        panel.SetSizer(sizer)
-        return panel
+        btn = QPushButton("Transliterate")
+        btn.clicked.connect(self.transliterate_text)
+        layout.addWidget(btn)
 
-    def create_file_transliteration_panel(self, parent):
-        panel = wx.Panel(parent)
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        tab.setLayout(layout)
+        self.tabs.append(tab)
+        return tab
 
-        input_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.input_file = wx.TextCtrl(panel)
-        input_sizer.Add(self.input_file, 1, wx.EXPAND | wx.ALL, 5)
-        input_browse_btn = wx.Button(panel, label="Browse...")
-        input_browse_btn.Bind(wx.EVT_BUTTON, self.on_browse_input_file)
-        input_sizer.Add(input_browse_btn, 0, wx.ALL, 5)
-        sizer.Add(input_sizer, 0, wx.EXPAND)
-
-        # Output File
-        output_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.output_file = wx.TextCtrl(panel)
-        output_sizer.Add(self.output_file, 1, wx.EXPAND | wx.ALL, 5)
-        output_browse_btn = wx.Button(panel, label="Browse...")
-        output_browse_btn.Bind(wx.EVT_BUTTON, self.on_browse_output_file)
-        output_sizer.Add(output_browse_btn, 0, wx.ALL, 5)
-        sizer.Add(output_sizer, 0, wx.EXPAND)
-
-        self.file_mode = wx.Choice(panel, choices=["LatinToCyrillic", "CyrillicToLatin"])
-        self.file_mode.SetSelection(0)
-        sizer.Add(self.file_mode, 0, wx.EXPAND | wx.ALL, 10)
-
-        file_transliterate_btn = wx.Button(panel, label="Transliterate")
-        file_transliterate_btn.Bind(wx.EVT_BUTTON, self.on_file_transliterate)
-        sizer.Add(file_transliterate_btn, 0, wx.ALIGN_CENTER | wx.ALL, 10)
-
-        panel.SetSizer(sizer)
-        return panel
-
-    def create_word_transliteration_panel(self, parent):
-        panel = wx.Panel(parent)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        input_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.word_input_file = wx.TextCtrl(panel)
-        input_sizer.Add(self.word_input_file, 1, wx.EXPAND | wx.ALL, 5)
-        word_input_browse_btn = wx.Button(panel, label="Browse...")
-        word_input_browse_btn.Bind(wx.EVT_BUTTON, self.on_browse_word_input_file)
-        input_sizer.Add(word_input_browse_btn, 0, wx.ALL, 5)
-        sizer.Add(input_sizer, 0, wx.EXPAND)
-
-        output_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.word_output_file = wx.TextCtrl(panel)
-        output_sizer.Add(self.word_output_file, 1, wx.EXPAND | wx.ALL, 5)
-        word_output_browse_btn = wx.Button(panel, label="Browse...")
-        word_output_browse_btn.Bind(wx.EVT_BUTTON, self.on_browse_word_output_file)
-        output_sizer.Add(word_output_browse_btn, 0, wx.ALL, 5)
-        sizer.Add(output_sizer, 0, wx.EXPAND)
-
-        self.word_mode = wx.Choice(panel, choices=["LatinToCyrillic", "CyrillicToLatin"])
-        self.word_mode.SetSelection(0)
-        sizer.Add(self.word_mode, 0, wx.EXPAND | wx.ALL, 10)
-
-        word_transliterate_btn = wx.Button(panel, label="Transliterate")
-        word_transliterate_btn.Bind(wx.EVT_BUTTON, self.on_word_transliterate)
-        sizer.Add(word_transliterate_btn, 0, wx.ALIGN_CENTER | wx.ALL, 10)
-
-        panel.SetSizer(sizer)
-        return panel
-
-    def on_text_transliterate(self, event):
-        mode = self.text_mode.GetStringSelection()
-        text = self.text_input.GetValue()
+    def transliterate_text(self):
+        mode = self.text_mode.currentText()
+        text = self.text_input.toPlainText()
         yu_converter = YuConverter()
-        if mode == 'LatinToCyrillic':
-            self.text_input.SetValue(yu_converter.transliterate_text(text, 'lat-to-cyr'))
-        else:
-            self.text_input.SetValue(yu_converter.transliterate_text(text, 'cyr-to-lat'))
 
-    def on_browse_input_file(self, event):
-        with wx.FileDialog(self, "Choose Input File", wildcard="All files (*.*)|*.*") as dlg:
-            if dlg.ShowModal() == wx.ID_OK:
-                self.input_file.SetValue(dlg.GetPath())
-
-    def on_browse_output_file(self, event):
-        with wx.FileDialog(self, "Choose Output File", wildcard="All files (*.*)|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as dlg:
-            if dlg.ShowModal() == wx.ID_OK:
-                self.output_file.SetValue(dlg.GetPath())
-
-    def on_file_transliterate(self, event):
-        yu_converter = YuConverter()
-        mode = self.file_mode.GetStringSelection()
-        input_path = self.input_file.GetValue()
-        output_path = self.output_file.GetValue()
         try:
-            if mode == 'LatinToCyrillic':
-                yu_converter.transliterate_text_file(input_path, output_path, 'lat-to-cyr')
+            if mode == "LatinToCyrillic":
+                result = yu_converter.transliterate_text(text, "lat-to-cyr")
             else:
-                yu_converter.transliterate_text_file(input_path, output_path, 'cyr-to-lat')
-            wx.MessageBox('Transliteration complete.', 'Done', style=wx.OK)
+                result = yu_converter.transliterate_text(text, "cyr-to-lat")
+            self.text_input.setText(result)
         except Exception as e:
-            wx.MessageBox(str(e), 'Error', style=wx.OK | wx.ICON_ERROR)
+            QMessageBox.critical(self, "Error", str(e))
 
-    def on_browse_word_input_file(self, event):
-        with wx.FileDialog(self, "Choose Word Input File", wildcard="Word files (*.docx)|*.docx") as dlg:
-            if dlg.ShowModal() == wx.ID_OK:
-                self.word_input_file.SetValue(dlg.GetPath())
+    def create_file_transliteration_tab(self):
+        tab = QWidget()
+        layout = QVBoxLayout()
 
-    def on_browse_word_output_file(self, event):
-        with wx.FileDialog(self, "Choose Word Output File", wildcard="Word files (*.docx)|*.docx", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as dlg:
-            if dlg.ShowModal() == wx.ID_OK:
-                self.word_output_file.SetValue(dlg.GetPath())
+        self.input_file = QLineEdit()
+        input_btn = QPushButton("Browse Input File")
+        input_btn.clicked.connect(self.browse_input_file)
+        
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(self.input_file)
+        input_layout.addWidget(input_btn)
+        layout.addLayout(input_layout)
 
-    def on_word_transliterate(self, event):
-        mode = self.word_mode.GetStringSelection()
-        input_path = self.word_input_file.GetValue()
-        output_path = self.word_output_file.GetValue()
+        self.output_file = QLineEdit()
+        output_btn = QPushButton("Browse Output File")
+        output_btn.clicked.connect(self.browse_output_file)
+
+        output_layout = QHBoxLayout()
+        output_layout.addWidget(self.output_file)
+        output_layout.addWidget(output_btn)
+        layout.addLayout(output_layout)
+
+        self.file_mode = QComboBox()
+        self.file_mode.addItems(["LatinToCyrillic", "CyrillicToLatin"])
+        layout.addWidget(QLabel("Mode:"))
+        layout.addWidget(self.file_mode)
+
+        btn = QPushButton("Transliterate")
+        btn.clicked.connect(self.transliterate_file)
+        layout.addWidget(btn)
+
+        tab.setLayout(layout)
+        self.tabs.append(tab)
+        return tab
+
+    def browse_input_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Input File")
+        if file_path:
+            self.input_file.setText(file_path)
+
+    def browse_output_file(self):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Select Output File")
+        if file_path:
+            self.output_file.setText(file_path)
+
+    def transliterate_file(self):
+        mode = self.file_mode.currentText()
+        input_path = self.input_file.text()
+        output_path = self.output_file.text()
         yu_converter = YuConverter()
-        try:
-            if mode == 'LatinToCyrillic':
-                yu_converter.transliterate_word_document(input_path, output_path, 'lat-to-cyr')
-            else:
-                yu_converter.transliterate_word_document(input_path, output_path, 'cyr-to-lat')
-            wx.MessageBox('Transliteration complete', 'Done', style=wx.OK | wx.ICON_INFORMATION)
-        except Exception as e:
-            wx.MessageBox(str(e), 'Error', style=wx.OK | wx.ICON_ERROR)
 
+        try:
+            if mode == "LatinToCyrillic":
+                yu_converter.transliterate_text_file(input_path, output_path, "lat-to-cyr")
+            else:
+                yu_converter.transliterate_text_file(input_path, output_path, "cyr-to-lat")
+            QMessageBox.information(self, "Success", "Transliteration complete.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def create_word_transliteration_tab(self):
+        tab = QWidget()
+        layout = QVBoxLayout()
+
+        self.word_input_file = QLineEdit()
+        word_input_btn = QPushButton("Browse Word Input File")
+        word_input_btn.clicked.connect(self.browse_word_input_file)
+
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(self.word_input_file)
+        input_layout.addWidget(word_input_btn)
+        layout.addLayout(input_layout)
+
+        self.word_output_file = QLineEdit()
+        word_output_btn = QPushButton("Browse Word Output File")
+        word_output_btn.clicked.connect(self.browse_word_output_file)
+
+        output_layout = QHBoxLayout()
+        output_layout.addWidget(self.word_output_file)
+        output_layout.addWidget(word_output_btn)
+        layout.addLayout(output_layout)
+
+        self.word_mode = QComboBox()
+        self.word_mode.addItems(["LatinToCyrillic", "CyrillicToLatin"])
+        layout.addWidget(QLabel("Mode:"))
+        layout.addWidget(self.word_mode)
+
+        btn = QPushButton("Transliterate")
+        btn.clicked.connect(self.transliterate_word)
+        layout.addWidget(btn)
+
+        tab.setLayout(layout)
+        self.tabs.append(tab)
+        return tab
+
+    def browse_word_input_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Word Input File", filter="Word Files (*.docx)")
+        if file_path:
+            self.word_input_file.setText(file_path)
+
+    def browse_word_output_file(self):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Select Word Output File", filter="Word Files (*.docx)")
+        if file_path:
+            self.word_output_file.setText(file_path)
+
+    def transliterate_word(self):
+        mode = self.word_mode.currentText()
+        input_path = self.word_input_file.text()
+        output_path = self.word_output_file.text()
+        yu_converter = YuConverter()
+
+        try:
+            if mode == "LatinToCyrillic":
+                yu_converter.transliterate_word_document(input_path, output_path, "lat-to-cyr")
+            else:
+                yu_converter.transliterate_word_document(input_path, output_path, "cyr-to-lat")
+            QMessageBox.information(self, "Success", "Transliteration complete.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
 
 if __name__ == "__main__":
-    app = wx.App()
-    TransliterationApp(None, title="YuConv GUI Application")
-    app.MainLoop()
-    
+    app = QApplication(sys.argv)
+    main_window = TransliterationApp()
+    main_window.show()
+    sys.exit(app.exec_())
