@@ -53,7 +53,7 @@ python gui.py
 You can also build an executable `.exe` program using pyinstaller using the following command:
 
 ```
-pyinstaller --noconsole --icon="res/icon.ico"--version_file="res/version.txt"
+pyinstaller --noconsole --icon="res/icon.ico" --version-file="res/version.txt" gui.py
 ```
 
 To build the installer, you need to install the NSIS (Nullsoft Scriptable Install System) and to compile the `installer.nsi` script.

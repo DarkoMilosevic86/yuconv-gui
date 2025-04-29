@@ -1,4 +1,4 @@
-; Copyright (C) 2024  Darko Milosevic
+; Copyright (C) 2024-2025  Darko Milosevic
 
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -12,10 +12,10 @@
 
     
 !include "mui2.nsh"
-Name "YuConv GUI 0.1"
-OutFile "YuConv_GUI_V0.1_Install.exe"
+Name "YuConv GUI 0.2"
+OutFile "YuConv_GUI_V0.2_Install.exe"
 Unicode True
-InstallDir "$PROGRAMFILES\YuConv GUI"
+InstallDir "$PROGRAMFILES64\YuConv GUI"
 RequestExecutionLevel admin
 Icon "res/icon.ico"
 
@@ -29,16 +29,16 @@ Icon "res/icon.ico"
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-!insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "Serbian"
 
-VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "YuConv GUI Installer"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "YuConv GUI Installer"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "Darko Milosevic"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" "YuConv GUI Installer is a trademark of Darko Milosevic"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© Darko Milosevic"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "YuConv GUI installing application"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.1.0"
-VIProductVersion "0.1.0.0"
+VIAddVersionKey /LANG=${LANG_SERBIAN} "ProductName" "YuConv GUI Installer"
+VIAddVersionKey /LANG=${LANG_SERBIAN} "Comments" "YuConv GUI Installer"
+VIAddVersionKey /LANG=${LANG_SERBIAN} "CompanyName" "Darko Milosevic"
+VIAddVersionKey /LANG=${LANG_SERBIAN} "LegalTrademarks" "YuConv GUI Installer is a trademark of Darko Milosevic"
+VIAddVersionKey /LANG=${LANG_SERBIAN} "LegalCopyright" "© Darko Milosevic"
+VIAddVersionKey /LANG=${LANG_SERBIAN} "FileDescription" "YuConv GUI installing application"
+VIAddVersionKey /LANG=${LANG_SERBIAN} "FileVersion" "0.2.0"
+VIProductVersion "0.2.0.0"
 
 Section "Install"
 SetOutPath "$INSTDIR"
